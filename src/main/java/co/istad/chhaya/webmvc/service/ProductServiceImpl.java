@@ -27,6 +27,23 @@ public class ProductServiceImpl implements ProductService {
         this.categoryRepository = categoryRepository;
     }
 
+    @Override
+    public ProductResponse getProductByCode(String code) {
+        // TODO: Select a product from database by code
+        return productRepository.findById(code)
+                .map(product -> ProductResponse.builder()
+                        .code(product.getCode())
+                        .name(product.getName())
+                        .price(product.getPrice())
+                        .status(product.getStatus())
+                        .categoryName(product.getCategory().getName())
+                        .build())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Product code not found!"
+                ));
+    }
+
 
     @Override
     public Page<ProductResponse> getProducts(int pageNumber, int pageSize) {

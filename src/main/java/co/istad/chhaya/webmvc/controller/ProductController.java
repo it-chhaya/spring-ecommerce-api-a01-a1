@@ -26,7 +26,7 @@ public class ProductController {
     @GetMapping("/{code}")
     public ProductResponse getProductByCode(@PathVariable String code) {
         log.info("getProductByCode: {}", code);
-        return null;
+        return productService.getProductByCode(code);
     }
 
 
