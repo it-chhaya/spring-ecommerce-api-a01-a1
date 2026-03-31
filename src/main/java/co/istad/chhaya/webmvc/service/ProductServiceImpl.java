@@ -4,6 +4,8 @@ import co.istad.chhaya.webmvc.domain.Category;
 import co.istad.chhaya.webmvc.domain.Product;
 import co.istad.chhaya.webmvc.dto.CreateProductRequest;
 import co.istad.chhaya.webmvc.dto.ProductResponse;
+import co.istad.chhaya.webmvc.dto.UpdateProductRequest;
+import co.istad.chhaya.webmvc.mapper.ProductMapper;
 import co.istad.chhaya.webmvc.repository.CategoryRepository;
 import co.istad.chhaya.webmvc.repository.ProductRepository;
 import co.istad.chhaya.webmvc.util.GenerateUtil;
@@ -21,23 +23,56 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final ProductMapper productMapper;
 
-    public ProductServiceImpl(ProductRepository productRepository, CategoryRepository categoryRepository) {
+    public ProductServiceImpl(ProductRepository productRepository,
+                              CategoryRepository categoryRepository,
+                              ProductMapper productMapper) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
+        this.productMapper = productMapper;
     }
+
+
+    @Override
+    public ProductResponse patchProductByCode(String code, UpdateProductRequest updateProductRequest) {
+        // TODO:
+        Product foundProduct = productRepository.findById(code)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Product code not found"
+                ));
+
+        if (updateProductRequest.name() != null)
+            foundProduct.setName(updateProductRequest.name());
+
+        if (updateProductRequest.price() != null)
+            foundProduct.setPrice(updateProductRequest.price());
+
+        if (updateProductRequest.status() != null)
+            foundProduct.setStatus(updateProductRequest.status());
+
+        if (updateProductRequest.categoryId() != null) {
+            Category foundCategory = categoryRepository
+                    .findById(updateProductRequest.categoryId())
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Category ID doesn't exist"
+                    ));
+            foundProduct.setCategory(foundCategory);
+        }
+
+        Product updatedProduct = productRepository.save(foundProduct);
+
+        return productMapper.productToProductResponse(updatedProduct);
+    }
+
 
     @Override
     public ProductResponse getProductByCode(String code) {
         // TODO: Select a product from database by code
         return productRepository.findById(code)
-                .map(product -> ProductResponse.builder()
-                        .code(product.getCode())
-                        .name(product.getName())
-                        .price(product.getPrice())
-                        .status(product.getStatus())
-                        .categoryName(product.getCategory().getName())
-                        .build())
+                .map(productMapper::productToProductResponse)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Product code not found!"
@@ -51,13 +86,7 @@ public class ProductServiceImpl implements ProductService {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         Page<Product> productPage = productRepository.findAll(pageable);
 
-        return productPage.map(product -> ProductResponse.builder()
-                .code(product.getCode())
-                .name(product.getName())
-                .price(product.getPrice())
-                .status(product.getStatus())
-                .categoryName(product.getCategory().getName())
-                .build());
+        return productPage.map(productMapper::productToProductResponse);
     }
 
 
@@ -88,13 +117,7 @@ public class ProductServiceImpl implements ProductService {
         product = productRepository.save(product);
 
         // 5. Transfer data from Entity to DTO
-        return ProductResponse.builder()
-                .code(product.getCode())
-                .name(product.getName())
-                .price(product.getPrice())
-                .status(product.getStatus())
-                .categoryName(product.getCategory().getName())
-                .build();
+        return productMapper.productToProductResponse(product);
     }
 
 }

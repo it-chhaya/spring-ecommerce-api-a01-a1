@@ -64,12 +64,13 @@ public class ProductController {
 
 
     @PatchMapping("/{code}")
-    public void patchProductByCode(
+    public ProductResponse patchProductByCode(
             @PathVariable String code,
-            @RequestBody UpdateProductRequest updateProductRequest
+            @Valid @RequestBody UpdateProductRequest updateProductRequest
     ) {
         log.info("patchProductByCode: {}", code);
         log.info("patchProductRequest: {}", updateProductRequest);
+        return productService.patchProductByCode(code, updateProductRequest);
     }
 
 
