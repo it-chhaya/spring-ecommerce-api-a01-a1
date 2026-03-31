@@ -8,7 +8,12 @@ import co.istad.chhaya.webmvc.repository.CategoryRepository;
 import co.istad.chhaya.webmvc.repository.ProductRepository;
 import co.istad.chhaya.webmvc.util.GenerateUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @Slf4j
@@ -22,6 +27,23 @@ public class ProductServiceImpl implements ProductService {
         this.categoryRepository = categoryRepository;
     }
 
+
+    @Override
+    public Page<ProductResponse> getProducts(int pageNumber, int pageSize) {
+        // TODO: Select product from database using pagination
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Page<Product> productPage = productRepository.findAll(pageable);
+
+        return productPage.map(product -> ProductResponse.builder()
+                .code(product.getCode())
+                .name(product.getName())
+                .price(product.getPrice())
+                .status(product.getStatus())
+                .categoryName(product.getCategory().getName())
+                .build());
+    }
+
+
     @Override
     public ProductResponse createNewProduct(CreateProductRequest createProductRequest) {
 
@@ -29,7 +51,10 @@ public class ProductServiceImpl implements ProductService {
         // 1. Validate category ID (exist or not)
         Category category = categoryRepository
                 .findById(createProductRequest.categoryId())
-                .orElseThrow(() -> new RuntimeException("Category ID doesn't exist"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Category ID doesn't exist"
+                ));
         log.info("category: {}", category.getId());
 
         // 2. Transfer data from DTO to Entity

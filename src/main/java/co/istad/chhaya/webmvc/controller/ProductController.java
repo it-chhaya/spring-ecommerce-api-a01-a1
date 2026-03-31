@@ -4,7 +4,9 @@ import co.istad.chhaya.webmvc.dto.CreateProductRequest;
 import co.istad.chhaya.webmvc.dto.ProductResponse;
 import co.istad.chhaya.webmvc.dto.UpdateProductRequest;
 import co.istad.chhaya.webmvc.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,24 +31,22 @@ public class ProductController {
 
 
     @GetMapping
-    public List<ProductResponse> getProducts(
+    public Page<ProductResponse> getProducts(
             @RequestParam(required = false, defaultValue = "0") int pageNumber,
-            @RequestParam(required = false, defaultValue = "20") int pageSize,
-            @RequestParam(required = false, defaultValue = "") String name
+            @RequestParam(required = false, defaultValue = "20") int pageSize
     ) {
-        log.info("pageNumber: {}, pageSize: {}, name: {}",
+        log.info("pageNumber: {}, pageSize: {}",
                 pageNumber,
-                pageSize,
-                name);
+                pageSize);
 
-        return List.of();
+        return productService.getProducts(pageNumber, pageSize);
     }
 
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public ProductResponse createNewProduct(
-            @RequestBody CreateProductRequest createProductRequest
+            @Valid @RequestBody CreateProductRequest createProductRequest
             ) {
         log.info("createProductRequest: {}", createProductRequest);
         return productService.createNewProduct(createProductRequest);
