@@ -39,7 +39,7 @@ public class User implements UserDetails {
     @Column(nullable = false, length = 8)
     private String gender;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "users_roles",
             joinColumns = @JoinColumn(name = "user_id"),
