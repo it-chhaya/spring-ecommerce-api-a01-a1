@@ -23,6 +23,7 @@ public class ProductController {
         this.productService = productService;
     }
 
+
     @GetMapping("/{code}")
     public ProductResponse getProductByCode(@PathVariable String code) {
         log.info("getProductByCode: {}", code);
