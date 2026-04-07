@@ -2,6 +2,7 @@ package co.istad.chhaya.webmvc.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,6 +19,7 @@ public class SecurityConfig {
     @Bean
     public DaoAuthenticationProvider daoAuthProvider(UserDetailsService userDetailsService,
                                                      PasswordEncoder passwordEncoder) {
+
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder);
 
@@ -30,6 +32,11 @@ public class SecurityConfig {
         // TODO:
         // 1. Security on endpoints
         http.authorizeHttpRequests(endpoint -> endpoint
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/products/**").hasAnyRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/v1/products/**").hasAnyRole("ADMIN", "BUSINESS")
+                .requestMatchers(HttpMethod.PUT, "/api/v1/products/**").hasAnyRole("ADMIN", "BUSINESS")
+                .requestMatchers(HttpMethod.POST, "/api/v1/products/**").hasAnyRole("ADMIN", "BUSINESS")
+                .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
                 .anyRequest().authenticated()
         );
 
